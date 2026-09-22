@@ -6,6 +6,7 @@ namespace DonChan.TelemetryProbe
     internal static class TelemetryRuntime
     {
         private static bool _initialized;
+        private static TelemetryServer _server;
         private static ProbeConfig _config;
         private static DateTime _nextSnapshotUtc;
         private static DateTime _nextAuditSnapshotUtc;
@@ -20,6 +21,22 @@ namespace DonChan.TelemetryProbe
                 if (_initialized) return;
                 ProbeLog.Initialize(mod.Path);
                 _config = ProbeConfig.Load(mod.Path);
+                if (_config.EnableHttpFeed)
+                {
+                    try
+                    {
+                        ProbeLog.Feed = new TelemetryFeed(ProbeLog.SessionId, 4096);
+                        _server = new TelemetryServer(ProbeLog.Feed, _config.HttpFeedPort);
+                        AppDomain.CurrentDomain.ProcessExit += delegate { if (_server != null) _server.Dispose(); };
+                        AppDomain.CurrentDomain.DomainUnload += delegate { if (_server != null) _server.Dispose(); };
+                        ProbeLog.Info("HTTP feed: http://127.0.0.1:" + _config.HttpFeedPort + "/v1/feed");
+                    }
+                    catch (Exception ex)
+                    {
+                        ProbeLog.Feed = null;
+                        ProbeLog.Warn("HTTP feed unavailable; file telemetry remains enabled: " + ex.Message);
+                    }
+                }
                 _nextSnapshotUtc = DateTime.UtcNow;
                 _nextAuditSnapshotUtc = DateTime.UtcNow;
                 _nextSubscriptionUtc = DateTime.UtcNow;
