@@ -29,6 +29,7 @@ if (!$harmony) {
     throw ("0Harmony.dll not found. Checked:`n  " + ($harmonyCandidates -join "`n  "))
 }
 
+# Compiler executable only: use the C# compiler already shipped with Windows.
 $frameworkCandidates = @(
     (Join-Path $env:WINDIR "Microsoft.NET\Framework64\v4.0.30319"),
     (Join-Path $env:WINDIR "Microsoft.NET\Framework\v4.0.30319")
@@ -39,6 +40,9 @@ if (!$frameworkDir) {
 }
 $csc = Join-Path $frameworkDir "csc.exe"
 
+# IMPORTANT: 7DTD V3 / current Unity assemblies target the Unity Mono/.NET Standard 2.1 profile.
+# Do not let csc.exe silently pull Windows .NET Framework mscorlib/System assemblies.
+# Instead compile against the runtime libraries shipped with this exact game install.
 $monoRoots = @(
     (Join-Path $Game7D2D "MonoBleedingEdge\lib\mono\unityjit"),
     (Join-Path $Game7D2D "MonoBleedingEdge\lib\mono\4.5"),
@@ -71,6 +75,7 @@ foreach ($name in @("mscorlib.dll", "System.dll", "System.Core.dll", "System.Xml
     $runtimeRefs.Add((Find-GameReference $name $true))
 }
 
+# Optional runtime/facade assemblies commonly used by Unity/.NET Standard metadata.
 foreach ($name in @(
     "System.Runtime.dll",
     "System.Runtime.Extensions.dll",
@@ -107,6 +112,7 @@ foreach ($reference in $references) {
     if (!(Test-Path $reference)) { throw "Reference not found: $reference" }
 }
 
+# Response file avoids Windows command-line quoting/length problems.
 $rsp = Join-Path $env:TEMP ("DonChanTelemetryProbe-" + [Guid]::NewGuid().ToString("N") + ".rsp")
 $diagnosticRsp = Join-Path $root "build-last.rsp"
 $diagnosticEnv = Join-Path $root "build-env.txt"
@@ -151,6 +157,10 @@ try {
     Write-Host "UnityCore: $unityCore"
     Write-Host "Building : $outputDll"
 
+    # /noconfig must be passed on the csc.exe command line. If it is placed
+    # inside the response file, Framework csc still loads its own csc.rsp and
+    # injects Windows System/System.Core/System.Xml references, which collide
+    # with the 7DTD/Unity runtime copies selected above.
     & $csc '/noconfig' ("@" + $rsp)
     $compilerExitCode = $LASTEXITCODE
     if ($compilerExitCode -ne 0) {

@@ -178,25 +178,8 @@ namespace DonChan.TelemetryProbe
         internal static string DeployableSubtype(string itemName)
         {
             string n = Normalize(itemName);
-            if (n.Contains("gunbot1junksledge")) return "RoboticSledge";
-            if (n.Contains("gunbot2junkturret")) return "RoboticTurret";
-            return "Generic";
-        }
-
-        internal static bool IsPoweredTool(string itemName, ItemValue itemValue)
-        {
-            string n = Normalize(itemName);
-            if (ContainsAny(n, "auger", "chainsaw")) return true;
-            object itemClass = itemValue == null ? null : LightTelemetry.Read(itemValue, "ItemClass");
-            string display = Convert.ToString(LightTelemetry.Read(itemClass, "DisplayType", "displayType"));
-            return !string.IsNullOrEmpty(display) && display.IndexOf("motorTool", StringComparison.OrdinalIgnoreCase) >= 0;
-        }
-
-        internal static string PoweredToolSubtype(string itemName)
-        {
-            string n = Normalize(itemName);
-            if (n.Contains("chainsaw")) return "Chainsaw";
-            if (n.Contains("auger")) return "Auger";
+            if (n.Contains("junksledge")) return "RoboticSledge";
+            if (n.Contains("junkturret")) return "RoboticTurret";
             return "Generic";
         }
 
@@ -205,21 +188,39 @@ namespace DonChan.TelemetryProbe
             string n = Normalize(itemName);
             if (ContainsAny(n, "desertvulture", "deserteagle", "deagle")) return "DesertVulture";
             if (ContainsAny(n, "magnum", "revolver")) return "Magnum";
-            if (n.Contains("crossbow")) return "Crossbow";
-            if (n.Contains("bow")) return "Bow";
-            if (n.Contains == null) return "Generic";
-            if (n.Contains == null) return "Generic";
-            if (n.Contains == null) return "Generic";
+            if (ContainsAny(n, "crossbow")) return "Crossbow";
+            if (ContainsAny(n, "bow")) return "Bow";
             if (ContainsAny(n, "shotgun")) return "Shotgun";
             if (ContainsAny(n, "smg", "submachine")) return "SMG";
-            if (ContainsAny(n, "rifle", "ak47", "m60", "machinegun", "assault", "tactical")) return "Rifle";
+            if (ContainsAny(n, "rifle", "ak47", "m60", "machinegun", "tacticalar")) return "Rifle";
             if (ContainsAny(n, "rocket", "launcher")) return "Launcher";
-            if (n.Contains("nailgun")) return "Nailgun";
-            if (n.Contains("pistol")) return "Pistol";
+            if (ContainsAny(n, "nailgun")) return "Nailgun";
+            if (ContainsAny(n, "pistol")) return "Pistol";
             return "Generic";
         }
 
-        internal static bool IsChainsaw(string itemName) { return Normalize(itemName).Contains("chainsaw"); }
+        internal static bool IsChainsaw(string itemName)
+        {
+            return Normalize(itemName).Contains("chainsaw");
+        }
+
+        internal static bool IsPoweredTool(string itemName, ItemValue itemValue)
+        {
+            string n = Normalize(itemName);
+            if (ContainsAny(n, "auger", "chainsaw")) return true;
+
+            object itemClass = itemValue == null ? null : LightTelemetry.Read(itemValue, "ItemClass", "ItemClassOrMissing");
+            object displayType = LightTelemetry.Read(itemClass, "DisplayType");
+            return displayType != null && string.Equals(Convert.ToString(displayType), "motorTool", StringComparison.OrdinalIgnoreCase);
+        }
+
+        internal static string PoweredToolSubtype(string itemName)
+        {
+            string n = Normalize(itemName);
+            if (n.Contains("auger")) return "Auger";
+            if (n.Contains("chainsaw")) return "Chainsaw";
+            return "Generic";
+        }
 
         internal static string VehicleSubtype(EntityVehicle vehicle)
         {
@@ -233,7 +234,7 @@ namespace DonChan.TelemetryProbe
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrEmpty(value) ? "" : value.Replace("_", "").Replace(" ", "").toLowerInvariant();
+            return string.IsNullOrEmpty(value) ? "" : value.Replace("_", "").Replace(" ", "").ToLowerInvariant();
         }
 
         private static bool ContainsAny(string value, params string[] words)

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <TelemetryProbeConfig>
+  <!-- Default is LIGHT mode: compact state + normalized events, suitable for longer runs. -->
   <AuditMode>false</AuditMode>
   <EnableLightSnapshots>true</EnableLightSnapshots>
   <EnableNormalizedEvents>true</EnableNormalizedEvents>
@@ -7,11 +8,15 @@
   <SuppressNoisyEvents>true</SuppressNoisyEvents>
   <SnapshotIntervalSeconds>1.0</SnapshotIntervalSeconds>
   <InstanceSubscriptionIntervalSeconds>2.0</InstanceSubscriptionIntervalSeconds>
+
+  <!-- AUDIT mode only. Enable AuditMode=true when rediscovering APIs after a game update. -->
   <EnableAuditSnapshots>true</EnableAuditSnapshots>
   <EnableRawAuditEvents>true</EnableRawAuditEvents>
   <AuditSnapshotIntervalSeconds>5.0</AuditSnapshotIntervalSeconds>
   <DumpAssemblyCatalogOnStart>true</DumpAssemblyCatalogOnStart>
   <DumpRelevantMembersOnStart>true</DumpRelevantMembersOnStart>
+
+  <!-- Heavy reflection limits used only by AUDIT mode. -->
   <SnapshotDepth>2</SnapshotDepth>
   <SnapshotMaxMembers>96</SnapshotMaxMembers>
   <SnapshotMaxCollectionItems>24</SnapshotMaxCollectionItems>
@@ -19,6 +24,7 @@
   <EventArgMaxMembers>24</EventArgMaxMembers>
   <EventArgMaxCollectionItems>8</EventArgMaxCollectionItems>
   <CatalogMaxMethodsPerType>300</CatalogMaxMethodsPerType>
+
   <EnableEventSubscriptions>true</EnableEventSubscriptions>
   <EnableHarmonyEventFallbacks>true</EnableHarmonyEventFallbacks>
 </TelemetryProbeConfig>

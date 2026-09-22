@@ -57,16 +57,45 @@ Every LIGHT snapshot and LIGHT event contains:
 }
 ```
 
-- `schemaVersion`: integer contract schema version.
-- `sessionId`: regenerated when the mod initializes.
-- `sequence`: monotonically increasing within one session and shared by LIGHT snapshots/events.
-- `observedAt`: UTC observation time.
+### Semantics
+
+- `schemaVersion`
+  - integer contract schema version.
+  - v1 consumers accept `1`.
+- `sessionId`
+  - regenerated when the mod initializes.
+  - records from different sessions must not be merged as one continuous timeline.
+- `sequence`
+  - monotonically increasing within one session.
+  - shared by LIGHT snapshots and LIGHT events.
+  - consumers can detect gaps, duplicates, and out-of-order delivery.
+- `observedAt`
+  - UTC observation time.
+  - normally derived from the record's original `utc` timestamp.
+
+The producer may include additional fields. A v1 consumer must ignore unknown fields unless explicitly configured otherwise.
 
 ## 4. Session metadata
 
-`session.json` identifies the current producer session and runtime and is not part of the shared `sequence` stream.
+`session.json` identifies the current producer session and runtime:
+
+```json
+{
+  "schemaVersion": 1,
+  "sessionId": "...",
+  "startedUtc": "...",
+  "modName": "DonChanTelemetryProbe",
+  "mode": "light",
+  "assemblyCSharp": "...",
+  "probeAssembly": "..."
+}
+```
+
+`session.json` itself is metadata and is not part of the shared `sequence` stream.
 
 ## 5. Snapshot v1
+
+LIGHT snapshots are compact state observations. Fields may be omitted when the current game build does not expose or populate them.
 
 Top-level shape:
 
@@ -92,15 +121,32 @@ Top-level shape:
 
 ### 5.1 Player
 
-Representative fields: entity ID, position/rotation, aiming/crouching, game stage, core temperature, HP/stamina/food/water, level/skill points/XP, biome.
+Representative fields:
+
+- entity ID
+- position / rotation
+- aiming / crouching
+- game stage
+- core temperature
+- HP / stamina / food / water
+- level / skill points / XP
+- biome
 
 ### 5.2 Held item
 
-Representative fields: internal/localized name, quality, durability, selected slot, stack count, display type / tech tier.
+Representative fields:
+
+- internal item name
+- localized name
+- quality
+- durability
+- selected slot
+- stack count
+- display type / tech tier
 
 ### 5.3 Weapon / powered resource state
 
-Firearms/ranged weapons may expose:
+Firearms and ranged weapons may expose:
 
 ```json
 {
@@ -129,7 +175,22 @@ Powered tools are normalized separately:
 
 ### 5.4 Focus
 
-The current hit/focus target may be normalized as `entity` or `block`. Block focus can include block name/ID, material, position, maximum HP, accumulated damage, remaining HP, and distance.
+The current hit/focus target may be normalized as:
+
+- `kind = entity`
+- `kind = block`
+
+Entity focus can include entity identity and distance.
+
+Block focus can include:
+
+- block name / ID
+- material
+- position
+- maximum HP
+- accumulated damage
+- remaining HP
+- distance
 
 ### 5.5 Movement
 
@@ -146,41 +207,87 @@ Derived fields:
 - `mounted`
 - `locomotion`
 
-Values:
+`locomotion` values:
 
 ```text
 idle | walking | running | crouching | airborne | mounted | moving
 ```
 
+The v1 producer does not equate `runModeActive=true` with actual movement.
+
 ### 5.6 Vehicle
 
-When mounted, the snapshot may include vehicle subtype/type, speed, engine/driver state, fuel, health, and storage availability.
+When mounted, the snapshot may include:
+
+- vehicle subtype / runtime type
+- speed
+- engine state
+- driver state
+- fuel
+- health
+- storage availability
 
 ### 5.7 Important status
 
 `status.important` is conservative and semantic.
 
-Candidate flags include bleeding, infected, brokenBone, sprained, stunned, burning, encumbered, concussion, laceration, abrasion, dysentery, dehydrated, hungry, hot, cold.
+Candidate flags include:
 
-`stunned` uses a whitelist of known stun buff IDs. Substring matching is not permitted.
+- bleeding
+- infected
+- brokenBone
+- sprained
+- stunned
+- burning
+- encumbered
+- concussion
+- laceration
+- abrasion
+- dysentery
+- dehydrated
+- hungry
+- hot
+- cold
+
+`stunned` uses a whitelist of known stun buff IDs. Substring matching is not permitted because stamina-related buff names can contain `stunt/stun` without representing player stun.
 
 ### 5.8 Quest
 
-Tracked/active quest may include quest code, state/phase, tracked/active, POI name/position, distance in meters, active objective count, and compact objective list.
+The tracked/active quest may include:
+
+- quest code
+- state / phase
+- tracked / active
+- POI name / position
+- distance in meters
+- active objective count
+- compact objective list
 
 ### 5.9 Nearby entities / combat pressure
 
-`world.nearby` may include loaded living entities/zombies, zombies within 5/10/15/20/30 m, zombies targeting the player, nearest zombie 3D/horizontal distance, and loaded animals/drones/vehicles/turrets.
+`world.nearby` may include:
+
+- loaded living entities
+- loaded zombies
+- zombies within 5 / 10 / 15 / 20 / 30 meters
+- zombies targeting the local player
+- nearest zombie 3D distance
+- nearest zombie horizontal distance
+- loaded animals / drones / vehicles / turrets
 
 Horizontal distance intentionally ignores Y difference.
 
 ## 6. Event tiers
 
+`events.jsonl` contains several event tiers.
+
 ### 6.1 Semantic events — primary commentary input
 
 `kind = "semantic"`
 
-Example:
+These are the preferred events for AITuber aggregation.
+
+For v1, semantic records use:
 
 ```json
 {
@@ -197,15 +304,34 @@ Example:
 
 ### 6.2 Normalized delegate / Harmony events — supporting evidence
 
-Examples include harvest, block/inventory changes, combat hit/damage/kill/death, buff add/remove, entity load/unload. These are useful for aggregation/diagnostics but should not be forwarded wholesale to the AI.
+`kind = "delegate"` or `kind = "harmony"`
+
+Examples:
+
+- harvest
+- block changes
+- inventory changes
+- combat hit / damage / kill / death
+- buff add / remove
+- entity load / unload
+
+These are useful for aggregation and diagnostics but should not be forwarded wholesale to the AI.
 
 ## 7. Stable semantic action vocabulary
 
 ### 7.1 Consumables
 
-`action.consume.complete`
+Event:
 
-Topic: `Consumable`
+```text
+action.consume.complete
+```
+
+Topic:
+
+```text
+Consumable
+```
 
 Subtypes:
 
@@ -217,15 +343,29 @@ Food | Drink | Medicine | Boost | Hazard | Generic
 
 ### 7.2 Melee weapons
 
-`action.melee`
+Event:
+
+```text
+action.melee
+```
+
+Subtypes include:
 
 ```text
 Knife | Spear | Sledge | Baton | Fist | Club | Generic
 ```
 
+Utility tools are not emitted as melee merely because they inherit a melee action implementation.
+
 ### 7.3 Hand tools
 
-`action.tool.use`
+Event:
+
+```text
+action.tool.use
+```
+
+Subtypes include:
 
 ```text
 Axe | Pickaxe | Shovel | Wrench | Ratchet | ImpactDriver | Hammer | Torch | Nailgun | Generic
@@ -233,7 +373,13 @@ Axe | Pickaxe | Shovel | Wrench | Ratchet | ImpactDriver | Hammer | Torch | Nail
 
 ### 7.4 Powered tools
 
-`action.poweredTool.use`
+Event:
+
+```text
+action.poweredTool.use
+```
+
+Subtypes:
 
 ```text
 Auger | Chainsaw | Generic
@@ -247,11 +393,19 @@ action.refuel.complete
 action.refuel.cancel
 ```
 
+A cancel event is emitted only when a matching request was observed first for the same action data.
+
 ### 7.5 Ranged fire
 
-`action.ranged.fire`
+Event:
 
-Subtypes:
+```text
+action.ranged.fire
+```
+
+The event is emitted from the actual fired callback, not merely from button input.
+
+Subtypes include:
 
 ```text
 Pistol | Magnum | DesertVulture | Rifle | Shotgun | SMG |
@@ -266,27 +420,47 @@ action.reload.complete
 action.reload.cancel
 ```
 
+A cancel event is emitted only after a matching request was observed.
+
 ### 7.6 Robotic deployables
 
-`action.deployable.fire`
+Event:
+
+```text
+action.deployable.fire
+```
+
+Subtypes:
 
 ```text
 RoboticSledge | RoboticTurret | Generic
 ```
 
+This name intentionally uses `fire`, not `use`: the hook is the actual holding-entity fired callback, so the event represents activation/firing rather than placement.
+
 Robotic turret reloads use the normal `action.reload.*` lifecycle with topic `Deployable`.
 
 ### 7.7 Craft
 
-`action.craft.complete`
+```text
+action.craft.complete
+```
+
+Emitted only when the recipe output operation reports success.
 
 ### 7.8 Vehicle
 
-`action.vehicle.enter`
+```text
+action.vehicle.enter
+```
+
+Subtypes:
 
 ```text
 Bicycle | Minibike | Motorcycle | Jeep | Gyrocopter | Generic
 ```
+
+Emitted only after the local player is actually attached to the vehicle.
 
 ## 8. Consumer profile for AITuber
 
@@ -297,6 +471,8 @@ The v1 commentary consumer should primarily read:
 3. selected low-level combat / harvest / block evidence only when aggregation requires it
 
 Do **not** stream every raw event directly to the AI.
+
+Recommended pipeline:
 
 ```text
 7DTD
@@ -320,14 +496,14 @@ speech
 - `null`, omitted, and `0` are not interchangeable.
 - Audit-only reflection fields are not stable API.
 - Game-update breakage should result in omitted fields or capability failure logs, not fabricated contract values.
-- Semantic reinterpretation that changes v1 meaning requires a new schema version.
+- Semantic normalization may evolve only through a new schema version when the change would alter v1 meaning.
 
 ## 10. Compatibility rules
 
 A v1 consumer:
 
 - accepts `schemaVersion = 1`
-- rejects/quarantines unsupported schema versions
+- rejects or explicitly quarantines unsupported schema versions
 - partitions state by `sessionId`
 - uses `sequence` for ordering/deduplication
 - ignores unknown additive fields
@@ -340,19 +516,33 @@ The pre-release v0.1.13 full semantic sweep produced:
 
 - 294 LIGHT snapshots
 - 1,749 LIGHT events
-- combined `sequence` stream 1 through 2,043
+- a combined `sequence` stream from 1 through 2,043
 - zero sequence gaps
 - zero duplicate sequence values
 - one consistent session ID
 
-Verified semantic cases included Auger, refuel, Tactical AR, Wrench, Medicine/Boost/Food, Robotic Turret, and reload/deployable lifecycles.
+Verified semantic cases included:
 
-Final v1 vocabulary corrections:
+- Auger -> `PoweredTool / Auger`
+- Auger refuel -> request -> complete
+- Tactical AR -> `Ranged / Rifle`
+- Wrench -> `Tool / Wrench`
+- Antibiotics -> `Consumable / Medicine`
+- Hackers / Fort Bites -> `Consumable / Boost`
+- canned/meal food -> `Consumable / Food`
+- Robotic Turret -> `Deployable / RoboticTurret`
+- ranged/deployable reload request/complete/cancel lifecycle
+
+The two final v1 vocabulary corrections are:
 
 - `action.deployable.use` -> `action.deployable.fire`
 - `resourceBrokenGlass` -> `Consumable / Hazard`
 
+These corrections do not alter the envelope or sequence model.
+
 ## 12. Versioning
+
+The wire schema is identified by `schemaVersion`.
 
 - Probe v1.0.0 ships **Don-Chan Telemetry Contract v1**
 - additive optional fields may be introduced without changing `schemaVersion`

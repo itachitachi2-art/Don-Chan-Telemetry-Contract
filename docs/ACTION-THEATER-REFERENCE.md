@@ -40,6 +40,7 @@ The ranged callback is deliberately used instead of input/button state because i
 
 Action Theater triggers animations. Telemetry Probe instead writes compact JSONL events and includes a compact ItemValue/Entity summary when available. The hook provenance is DonChanActionTheater, but the stable v1 producer field is `source: DonChanTelemetryProbe`. Downstream consumers distinguish semantic events by `kind: semantic` and the stable event vocabulary.
 
+
 ## Telemetry v1 note
 
 Action Theater remains the hook provenance. Don-Chan Telemetry Probe v1 owns the stable semantic vocabulary and emits semantic records with `source: DonChanTelemetryProbe`.

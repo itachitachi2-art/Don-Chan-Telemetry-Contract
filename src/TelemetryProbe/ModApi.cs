@@ -3,6 +3,7 @@ using System;
 
 namespace DonChan.TelemetryProbe
 {
+    /// <summary>7 Days to Die V3.x mod entry point.</summary>
     public sealed class ModApi : IModApi
     {
         public void InitMod(Mod modInstance)
