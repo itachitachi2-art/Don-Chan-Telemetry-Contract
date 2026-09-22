@@ -1,7 +1,7 @@
 name: Telemetry feed contract
 on:
   push:
-    branches: ['feature/aituber-feed-*']
+    branches: ['feature/aituber-feed-*', 'main']
   pull_request:
     paths: ['src/**', 'tests/**', '.github/workflows/telemetry-feed.yml']
 permissions:
