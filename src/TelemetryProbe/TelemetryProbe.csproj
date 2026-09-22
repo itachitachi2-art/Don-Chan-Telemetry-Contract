@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <AssemblyName>DonChanTelemetryProbe</AssemblyName>
+    <RootNamespace>DonChan.TelemetryProbe</RootNamespace>
+    <Deterministic>true</Deterministic>
+    <DebugType>portable</DebugType>
+    <Game7D2D Condition="'$(Game7D2D)' == '' and '$(GAME_7D2D)' != ''">$(GAME_7D2D)</Game7D2D>
+    <Game7D2D Condition="'$(Game7D2D)' == ''">C:\Program Files (x86)\Steam\steamapps\common\7 Days To Die</Game7D2D>
+    <ManagedDir>$(Game7D2D)\7DaysToDie_Data\Managed</ManagedDir>
+    <HarmonyDir>$(Game7D2D)\Mods\0_TFP_Harmony</HarmonyDir>
+    <DeployDir>$(MSBuildThisFileDirectory)..\..\mod\DonChanTelemetryProbe</DeployDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="Assembly-CSharp">
+      <HintPath>$(ManagedDir)\Assembly-CSharp.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="0Harmony">
+      <HintPath>$(HarmonyDir)\0Harmony.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+</Project>
