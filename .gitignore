@@ -1,0 +1,5 @@
+src/**/bin/
+src/**/obj/
+mod/DonChanTelemetryProbe/DonChanTelemetryProbe.dll
+mod/DonChanTelemetryProbe/Telemetry/
+*.zip
