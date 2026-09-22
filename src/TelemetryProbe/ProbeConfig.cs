@@ -7,6 +7,7 @@ namespace DonChan.TelemetryProbe
 {
     internal sealed class ProbeConfig
     {
+        // Light mode is the default runtime mode. Audit mode enables the heavy reflection dumps.
         public bool AuditMode = false;
         public bool EnableLightSnapshots = true;
         public bool EnableNormalizedEvents = true;
@@ -49,6 +50,7 @@ namespace DonChan.TelemetryProbe
                 config.EnableRawAuditEvents = Bool(root, "EnableRawAuditEvents", config.EnableRawAuditEvents);
                 config.EnableAuditSnapshots = Bool(root, "EnableAuditSnapshots", config.EnableAuditSnapshots);
                 config.SuppressNoisyEvents = Bool(root, "SuppressNoisyEvents", config.SuppressNoisyEvents);
+
                 config.SnapshotIntervalSeconds = Double(root, "SnapshotIntervalSeconds", config.SnapshotIntervalSeconds);
                 config.AuditSnapshotIntervalSeconds = Double(root, "AuditSnapshotIntervalSeconds", config.AuditSnapshotIntervalSeconds);
                 config.InstanceSubscriptionIntervalSeconds = Double(root, "InstanceSubscriptionIntervalSeconds", config.InstanceSubscriptionIntervalSeconds);

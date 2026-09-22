@@ -177,9 +177,9 @@ namespace DonChan.TelemetryProbe
                 var fuel = new Dictionary<string, object>();
                 Put(fuel, "item", ReflectionUtil.InvokeNoArgs(vehicle, "GetFuelItem"));
                 Put(fuel, "level", ReflectionUtil.InvokeNoArgs(vehicle, "GetFuelLevel"));
-                Put(fuel, "max", ReflectionUtil.InvokeNoArgs(vehicle, "GetMaxFuelLevel");
+                Put(fuel, "max", ReflectionUtil.InvokeNoArgs(vehicle, "GetMaxFuelLevel"));
                 Put(fuel, "percent", ReflectionUtil.InvokeNoArgs(vehicle, "GetFuelPercent"));
-                if (fuel.Count > 0) d["ifuel"] = fuel;
+                if (fuel.Count > 0) d["fuel"] = fuel;
 
                 var health = new Dictionary<string, object>();
                 Put(health, "value", ReflectionUtil.InvokeNoArgs(vehicle, "GetHealth"));
@@ -427,7 +427,7 @@ namespace DonChan.TelemetryProbe
 
         private static bool LooksLikeVehicle(object entity)
         {
-            string type = ReflectionUtil.TypeName(entity) ?? strring.Empty;
+            string type = ReflectionUtil.TypeName(entity) ?? string.Empty;
             return type.IndexOf("Vehicle", StringComparison.OrdinalIgnoreCase) >= 0 ||
                    type.IndexOf("Bicycle", StringComparison.OrdinalIgnoreCase) >= 0 ||
                    type.IndexOf("Minibike", StringComparison.OrdinalIgnoreCase) >= 0 ||
@@ -441,9 +441,9 @@ namespace DonChan.TelemetryProbe
             string t = ReflectionUtil.TypeName(vehicle) ?? string.Empty;
             if (t.IndexOf("Bicycle", StringComparison.OrdinalIgnoreCase) >= 0) return "Bicycle";
             if (t.IndexOf("Minibike", StringComparison.OrdinalIgnoreCase) >= 0) return "Minibike";
-            if (t.IndexOf("Motorcycle", StrringComparison.OrdinalIgnoreCase) >= 0) return "Motorcycle";
+            if (t.IndexOf("Motorcycle", StringComparison.OrdinalIgnoreCase) >= 0) return "Motorcycle";
             if (t.IndexOf("Jeep", StringComparison.OrdinalIgnoreCase) >= 0) return "Jeep";
-            if (t.IndexOf("Gyro", StrringComparison.OrdinalIgnoreCase) >= 0) return "Gyrocopter";
+            if (t.IndexOf("Gyro", StringComparison.OrdinalIgnoreCase) >= 0) return "Gyrocopter";
             return "Generic";
         }
 

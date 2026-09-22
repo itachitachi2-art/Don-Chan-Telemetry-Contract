@@ -24,4 +24,14 @@
       <Private>false</Private>
     </Reference>
   </ItemGroup>
+
+  <Target Name="CheckGameReferences" BeforeTargets="ResolveReferences">
+    <Error Condition="!Exists('$(ManagedDir)\Assembly-CSharp.dll')" Text="Assembly-CSharp.dll not found. Set -p:Game7D2D=&quot;...\7 Days To Die&quot;. Current: $(Game7D2D)" />
+    <Error Condition="!Exists('$(HarmonyDir)\0Harmony.dll')" Text="0Harmony.dll not found under Mods\0_TFP_Harmony. Launch/install 7DTD mod support first. Current: $(HarmonyDir)" />
+  </Target>
+
+  <Target Name="DeployModDll" AfterTargets="Build">
+    <MakeDir Directories="$(DeployDir)" />
+    <Copy SourceFiles="$(TargetPath)" DestinationFiles="$(DeployDir)\DonChanTelemetryProbe.dll" />
+  </Target>
 </Project>

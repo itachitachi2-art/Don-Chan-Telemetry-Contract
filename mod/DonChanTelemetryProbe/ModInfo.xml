@@ -4,7 +4,7 @@
   <DisplayName value="Don-Chan Telemetry Probe" />
   <Description value="Runtime telemetry and capability audit probe for 7 Days to Die V3.x." />
   <Author value="itachi / OpenAI" />
-  <Version value="1.0.0" />
+  <Version value="0.1.13" />
   <Website value="" />
   <SkipWithAntiCheat value="true" />
 </xml>
