@@ -15,6 +15,7 @@ namespace DonChan.TelemetryProbe
         private static string _auditSnapshotPath;
         private static string _sessionId;
         private static long _sequence;
+        internal static TelemetryFeed Feed;
 
         public const int SchemaVersion = 1;
         public static string LogDirectory { get { return _logDir; } }
@@ -71,8 +72,11 @@ namespace DonChan.TelemetryProbe
             lock (Sync)
             {
                 StampTelemetryRecordUnsafe(payload);
-                string line = JsonUtil.Serialize(payload) + Environment.NewLine;
-                File.AppendAllText(path, line, new UTF8Encoding(false));
+                string json = JsonUtil.Serialize(payload);
+                var record = payload as System.Collections.Generic.IDictionary<string, object>;
+                if (Feed != null && record != null && (path == _eventPath || path == _snapshotPath))
+                    Feed.Publish(Convert.ToInt64(record["sequence"]), json, path == _snapshotPath);
+                File.AppendAllText(path, json + Environment.NewLine, new UTF8Encoding(false));
             }
         }
 
