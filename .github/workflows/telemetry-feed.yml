@@ -18,3 +18,8 @@ jobs:
       - name: Compile and test nearby observations without game assemblies
         shell: powershell
         run: ./tests/run-nearby-tests.ps1
+
+
+      - name: Compile and test combat event policy
+        shell: powershell
+        run: ./tests/run-combat-tests.ps1

@@ -6,7 +6,7 @@ namespace DonChan.Shared
 {
     internal static class NearbyTargetClassifier
     {
-        internal const string Version = "six-groups-v1";
+        internal const string Version = "six-groups-v2";
         // Contract identifiers, not display-name/free-text matching.
         internal static string Classify(Type runtimeType, string className)
         {
@@ -19,6 +19,7 @@ namespace DonChan.Shared
                 case "animalDireWolf": return "dire_wolf";
                 case "animalBossGrace": return "grace";
             }
+            if (HasAncestor(runtimeType, "EntityDrone") || HasAncestor(runtimeType, "EntityVehicle") || HasAncestor(runtimeType, "EntityPlayer") || HasAncestor(runtimeType, "EntityTurret")) return "excluded";
             // Check the specific dog type before its possible zombie ancestor.
             if (HasAncestor(runtimeType, "EntityZombieDog")) return "zombie_dog";
             if (HasAncestor(runtimeType, "EntityVulture")) return "vulture";
@@ -49,6 +50,11 @@ namespace DonChan.Shared
                 for (Type t = entity.GetType(); t != null && definitionType == null; t = t.BaseType)
                     definitionType = t.Assembly.GetType("EntityClass");
                 if (definitionType == null) return null;
+                MethodInfo lookup = definitionType.GetMethod("GetEntityClassName", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static, null, new [] { typeof(int) }, null);
+                if (lookup != null) {
+                    string name = lookup.Invoke(null, new [] { id }) as string;
+                    return string.IsNullOrEmpty(name) || name == "null" ? null : name;
+                }
                 FieldInfo field = definitionType.GetField("list", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
                 if (field == null) return null;
                 IDictionary registry = field.GetValue(null) as IDictionary;
@@ -72,3 +78,4 @@ namespace DonChan.Shared
         }
     }
 }
+

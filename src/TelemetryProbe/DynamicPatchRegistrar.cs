@@ -15,6 +15,7 @@ namespace DonChan.TelemetryProbe
         {
             Tuple.Create("EntityAlive", "DamageEntity", "combat.damage"),
             Tuple.Create("EntityAlive", "Kill", "combat.kill"),
+            Tuple.Create("EntityAlive", "ProcessDamageResponseLocal", "combat.response"),
             Tuple.Create("EntityAlive", "OnEntityDeath", "combat.death"),
             Tuple.Create("ItemActionAttack", "Hit", "combat.hit"),
             Tuple.Create("EntityBuffs", "AddBuff", "buff.add"),
@@ -86,7 +87,7 @@ namespace DonChan.TelemetryProbe
                 if (_config.EnableCombatValidation && label.StartsWith("combat.", StringComparison.Ordinal))
                     CombatValidation.Capture(label, __originalMethod, __instance, __args);
 
-                if (_config.EnableNormalizedEvents && (!_config.SuppressNoisyEvents || EventNormalizer.ShouldEmitHarmony(label, __args)))
+                if (_config.EnableNormalizedEvents && CombatEventPolicy.IsRealEvent(label, __originalMethod, __args) && (!_config.SuppressNoisyEvents || EventNormalizer.ShouldEmitHarmony(label, __args)))
                     ProbeLog.Event(EventNormalizer.NormalizeHarmony(label, __originalMethod, __instance, __args));
 
                 if (_config.AuditMode && _config.EnableRawAuditEvents)

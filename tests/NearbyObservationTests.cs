@@ -45,10 +45,19 @@ class Test {
   Check((int)d["classifiedAliveTargets"]==1 && (string)d["classificationStatus"]=="complete","recognized target count");
   d=Run(p,new E { entityClass=999 });
   Check((int)d["classifiedAliveTargets"]==0 && (string)d["classificationStatus"]=="partial","unknown not absence");
+  Check(DonChan.Shared.NearbyTargetClassifier.Classify(typeof(EntityDrone),null)=="excluded","drone excluded");
+  Check(DonChan.Shared.NearbyTargetClassifier.Classify(typeof(EntityMotorcycle),null)=="excluded","vehicle ancestry excluded");
   Console.WriteLine("Nearby observation: " + checks + " assertions passed");
  }
 }
 
 class EntityZombie {}
 
-class EntityClass { public static Dictionary<int,EntityClass> list=new Dictionary<int,EntityClass>(); public string entityClassName; }
+class Registry { internal Dictionary<int,EntityClass> Dict=new Dictionary<int,EntityClass>(); public EntityClass this[int id] { set { Dict[id]=value; } } }
+class EntityClass { public static Registry list=new Registry(); public string entityClassName;
+ public static string GetEntityClassName(int id) { EntityClass v; return list.Dict.TryGetValue(id,out v) ? v.entityClassName : "null"; } }
+class EntityDrone {}
+class EntityVehicle {}
+class EntityMotorcycle : EntityVehicle {}
+
+

@@ -115,6 +115,8 @@ namespace DonChan.TelemetryProbe
 
             if (eventName == "combat.hit")
             {
+                data["attackMode"] = CombatEventPolicy.NamedArgument(method, args, "_attackMode");
+                data["attackerEntityId"] = CombatEventPolicy.NamedArgument(method, args, "_attackerEntityId");
                 object hitInfo = FindByTypeSuffix(args, "AttackHitInfo");
                 if (hitInfo != null)
                 {
@@ -154,7 +156,7 @@ namespace DonChan.TelemetryProbe
                 Put(data, "amount", Arg(args, 1));
                 AddScalarArgs(data, args, 2, 5);
             }
-            else if (eventName == "combat.kill")
+            else if (eventName == "combat.kill" || eventName == "combat.response")
             {
                 if (instance != null) data["target"] = LightTelemetry.EntitySummary(instance);
                 object response = Arg(args, 0);
@@ -168,6 +170,15 @@ namespace DonChan.TelemetryProbe
                     Put(r, "dismember", LightTelemetry.Read(response, "Dismember"));
                     Put(r, "bodyPart", LightTelemetry.Read(response, "HitBodyPart"));
                     Put(r, "direction", LightTelemetry.Read(response, "HitDirection"));
+                    object responseSource = LightTelemetry.Read(response, "Source");
+                    if (responseSource != null) {
+                        r["source"] = new Dictionary<string, object> {
+                            { "ownerEntityId", LightTelemetry.Read(responseSource, "ownerEntityId") },
+                            { "creatorEntityId", LightTelemetry.Read(responseSource, "CreatorEntityId") },
+                            { "damageType", LightTelemetry.Read(responseSource, "damageType") },
+                            { "damageSource", LightTelemetry.Read(responseSource, "damageSource") }
+                        };
+                    }
                     data["response"] = r;
                 }
             }
@@ -253,3 +264,4 @@ namespace DonChan.TelemetryProbe
         }
     }
 }
+
