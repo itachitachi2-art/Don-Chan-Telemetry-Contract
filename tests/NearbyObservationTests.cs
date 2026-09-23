@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using DonChan.TelemetryProbe;
 class V { public double x, y, z; public V(double a, double b, double c) { x=a; y=b; z=c; } }
-class E { public int entityId=1; public V position=new V(0,0,0); public bool dead; public object attackTarget; public bool IsDead() { return dead; } }
+class E { public int entityClass=0; public int entityId=1; public V position=new V(0,0,0); public bool dead; public object attackTarget; public bool IsDead() { return dead; } }
 class Unknown { public V position=new V(0,0,0); }
 class W { public IEnumerable EntityAlives; }
 class Broken : IEnumerable { public IEnumerator GetEnumerator() { yield return new E(); throw new Exception(); } }
@@ -29,7 +29,26 @@ class Test {
   var many=new object[129]; for(int i=0;i<many.Length;i++) many[i]=new E();
   d=Run(p,many); Check((bool)d["scanComplete"] && !(bool)d["recordsComplete"] && (int)d["omittedRecords"]==1,"bounded output explicit omission");
   d=Run(p); Check((bool)d["recordsComplete"] && Rows(d).Count==0,"valid empty differs from failure");
-  Check((string)d["classificationStatus"]=="pending","no enemy classification claim");
+  Check((string)d["classificationStatus"]=="complete","no enemy classification claim");
+  Check(DonChan.Shared.NearbyTargetClassifier.Classify(typeof(E),"animalZombieBear")=="zombie_bear","bear included");
+  Check(DonChan.Shared.NearbyTargetClassifier.Classify(typeof(E),"animalDireWolf")=="dire_wolf","dire wolf included");
+  Check(DonChan.Shared.NearbyTargetClassifier.Classify(typeof(E),"animalBossGrace")=="grace","grace included");
+  Check(DonChan.Shared.NearbyTargetClassifier.Classify(typeof(E),"animalZombieDog")=="zombie_dog","dog included");
+  Check(DonChan.Shared.NearbyTargetClassifier.Classify(typeof(E),"animalZombieVultureRadiated")=="vulture","radiated vulture included");
+  Check(DonChan.Shared.NearbyTargetClassifier.Classify(typeof(EntityZombie),null)=="humanoid_zombie","human exact type");
+  Check(DonChan.Shared.NearbyTargetClassifier.Classify(typeof(E),"animalWolf")=="excluded","normal wolf excluded");
+  Check(DonChan.Shared.NearbyTargetClassifier.Classify(typeof(E),"modZombieBear")=="unknown","no substring guess");
+  Check(DonChan.Shared.NearbyTargetClassifier.ResolveClassName(new E())==null,"missing registry remains unknown");
+  EntityClass.list[9]=new EntityClass { entityClassName="animalBossGrace" };
+  Check(DonChan.Shared.NearbyTargetClassifier.ResolveClassName(new E { entityClass=9 })=="animalBossGrace","registry resolution");
+  d=Run(p,new E { entityClass=9 });
+  Check((int)d["classifiedAliveTargets"]==1 && (string)d["classificationStatus"]=="complete","recognized target count");
+  d=Run(p,new E { entityClass=999 });
+  Check((int)d["classifiedAliveTargets"]==0 && (string)d["classificationStatus"]=="partial","unknown not absence");
   Console.WriteLine("Nearby observation: " + checks + " assertions passed");
  }
 }
+
+class EntityZombie {}
+
+class EntityClass { public static Dictionary<int,EntityClass> list=new Dictionary<int,EntityClass>(); public string entityClassName; }

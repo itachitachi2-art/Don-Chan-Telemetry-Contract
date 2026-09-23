@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
+using DonChan.Shared;
 
 namespace DonChan.TelemetryProbe
 {
@@ -14,7 +15,7 @@ namespace DonChan.TelemetryProbe
             var records = new List<object>();
             var d = new Dictionary<string, object> {
                 { "schemaVersion", 1 }, { "rangeMeters", 15 }, { "distanceMetric", "horizontal_xz" },
-                { "classificationStatus", "pending" }, { "scanComplete", false },
+                { "classificationStatus", "unknown" }, { "classifierVersion", NearbyTargetClassifier.Version }, { "scanComplete", false },
                 { "recordsComplete", false }, { "records", records }
             };
             double px, pz;
@@ -24,7 +25,7 @@ namespace DonChan.TelemetryProbe
             { d["failure"] = "entity_list_unavailable"; return d; }
             object playerId;
             Read(player, new[] { "entityId", "EntityId" }, out playerId);
-            int scanned = 0, unknown = 0, omitted = 0;
+            int scanned = 0, unknown = 0, omitted = 0, unclassified = 0, targets = 0;
             try
             {
                 foreach (object entity in (IEnumerable)raw)
@@ -40,11 +41,15 @@ namespace DonChan.TelemetryProbe
                     bool? dead = Dead(entity);
                     if (dead == true) continue;
                     if (!dead.HasValue) unknown++;
+                    string className = NearbyTargetClassifier.ResolveClassName(entity);
+                    string group = NearbyTargetClassifier.Classify(entity.GetType(), className);
+                    if (group == "unknown") unclassified++;
+                    if (dead == false && NearbyTargetClassifier.IsTarget(group)) targets++;
                     if (records.Count >= MaxRecords) { omitted++; continue; }
                     var r = new Dictionary<string, object> {
                         { "type", entity.GetType().FullName }, { "horizontalDistance", Math.Round(distance, 3) },
                         { "lifeState", dead.HasValue ? "alive" : "unknown" },
-                        { "targetState", "unknown" }
+                        { "targetState", "unknown" }, { "group", group }, { "className", className }
                     };
                     object id, cls;
                     if (Read(entity, new[] { "entityId", "EntityId" }, out id) && id != null) r["entityId"] = id;
@@ -86,6 +91,9 @@ namespace DonChan.TelemetryProbe
             }
             catch { d["failure"] = "enumeration_failed"; }
             d["scanned"] = scanned;
+            d["classifiedAliveTargets"] = targets;
+            d["unclassifiedRecords"] = unclassified;
+            d["classificationStatus"] = (bool)d["scanComplete"] && unknown == 0 && unclassified == 0 ? "complete" : "partial";
             d["unknownReadings"] = unknown;
             d["omittedRecords"] = omitted;
             d["recordsComplete"] = (bool)d["scanComplete"] && unknown == 0 && omitted == 0;

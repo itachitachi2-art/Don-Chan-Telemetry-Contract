@@ -4,4 +4,6 @@
     <AssemblyName>DonChanZombieRadar</AssemblyName>
     <RootNamespace>DonChan.ZombieRadar</RootNamespace>
   </PropertyGroup>
+  <ItemGroup><Compile Include="../../../../shared/NearbyTargetClassifier.cs" Link="NearbyTargetClassifier.cs" /></ItemGroup>
 </Project>
+
