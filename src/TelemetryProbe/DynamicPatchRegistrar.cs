@@ -72,16 +72,12 @@ namespace DonChan.TelemetryProbe
             }
         }
 
-        [ThreadStatic] private static string _damageActionId;
-        private static long _damageSerial;
-        internal static string DamageActionId { get { return _damageActionId; } }
-        private static void DamagePrefix(out string __state) {
-            __state = _damageActionId;
-            _damageActionId = ProbeLog.SessionId + ":damage:" + System.Threading.Interlocked.Increment(ref _damageSerial);
+        internal static string DamageActionId { get { return DamageActionScope.Current; } }
+        private static void DamagePrefix(out DamageActionScope __state) {
+            __state = DamageActionScope.Begin(ProbeLog.SessionId);
         }
-        private static Exception DamageFinalizer(Exception __exception, string __state) {
-            _damageActionId = __state;
-            return __exception;
+        private static Exception DamageFinalizer(Exception __exception, DamageActionScope __state) {
+            return DamageActionScope.End(__state, __exception);
         }
         private static readonly Dictionary<MethodBase, string> PatchLabels = new Dictionary<MethodBase, string>();
 
@@ -128,4 +124,3 @@ namespace DonChan.TelemetryProbe
         }
     }
 }
-

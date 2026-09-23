@@ -6,7 +6,7 @@ namespace DonChan.TelemetryProbe
 {
     internal static class CombatValidation
     {
-        public const string Version = "combat-validation-20260923-3";
+        public const string Version = "combat-validation-20260923-4";
         public static bool Enabled;
         public static int Step;
         private static readonly string[] Labels = {
