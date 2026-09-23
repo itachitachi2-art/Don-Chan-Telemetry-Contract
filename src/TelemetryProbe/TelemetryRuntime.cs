@@ -53,6 +53,7 @@ namespace DonChan.TelemetryProbe
                     { "probeAssembly", typeof(TelemetryRuntime).Assembly.FullName }
                 });
 
+                CombatValidation.Initialize(_config.EnableCombatValidation);
                 if (_config.EnableEventSubscriptions) EventSubscriber.Initialize(_config);
                 DynamicPatchRegistrar.Initialize(_config);
                 _initialized = true;
@@ -63,6 +64,7 @@ namespace DonChan.TelemetryProbe
         public static void Tick()
         {
             if (!_initialized) return;
+            CombatValidation.Tick();
             DateTime now = DateTime.UtcNow;
             try
             {
@@ -113,3 +115,4 @@ namespace DonChan.TelemetryProbe
         }
     }
 }
+

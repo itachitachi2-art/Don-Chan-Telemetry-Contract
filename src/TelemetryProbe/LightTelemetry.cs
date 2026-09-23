@@ -199,7 +199,11 @@ namespace DonChan.TelemetryProbe
             Put(d, "bloodMoon", Read(world, "isEventBloodMoon", "IsEventBloodMoon"));
             Put(d, "dawnHour", Read(world, "DawnHour"));
             Put(d, "duskHour", Read(world, "DuskHour"));
-            if (player != null) d["nearby"] = NearbySummary(world, player);
+            if (player != null)
+            {
+                d["nearby"] = NearbySummary(world, player);
+                d["nearbyObservation"] = NearbyObservation.Collect(world, player);
+            }
             return d;
         }
 
@@ -331,3 +335,4 @@ namespace DonChan.TelemetryProbe
         }
     }
 }
+

@@ -84,6 +84,7 @@ namespace DonChan.TelemetryProbe
         {
             var record = payload as System.Collections.Generic.IDictionary<string, object>;
             if (record == null) return;
+            if (CombatValidation.Enabled) record["validationStep"] = CombatValidation.Step;
             if (!record.ContainsKey("schemaVersion")) record["schemaVersion"] = SchemaVersion;
             if (!record.ContainsKey("sessionId")) record["sessionId"] = _sessionId;
             if (!record.ContainsKey("sequence")) record["sequence"] = ++_sequence;
@@ -106,3 +107,4 @@ namespace DonChan.TelemetryProbe
         }
     }
 }
+

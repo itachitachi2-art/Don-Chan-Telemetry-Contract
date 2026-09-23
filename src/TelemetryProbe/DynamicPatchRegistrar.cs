@@ -15,6 +15,7 @@ namespace DonChan.TelemetryProbe
         {
             Tuple.Create("EntityAlive", "DamageEntity", "combat.damage"),
             Tuple.Create("EntityAlive", "Kill", "combat.kill"),
+            Tuple.Create("EntityAlive", "ProcessDamageResponseLocal", "combat.response"),
             Tuple.Create("EntityAlive", "OnEntityDeath", "combat.death"),
             Tuple.Create("ItemActionAttack", "Hit", "combat.hit"),
             Tuple.Create("EntityBuffs", "AddBuff", "buff.add"),
@@ -61,7 +62,9 @@ namespace DonChan.TelemetryProbe
                 try
                 {
                     var postfix = new HarmonyMethod(typeof(DynamicPatchRegistrar).GetMethod("GenericEventPostfix", BindingFlags.Static | BindingFlags.NonPublic));
-                    _harmony.Patch(method, postfix: postfix);
+                    var prefix = eventName == "combat.damage" ? new HarmonyMethod(typeof(DynamicPatchRegistrar).GetMethod("DamagePrefix", BindingFlags.Static | BindingFlags.NonPublic)) : null;
+                    var finalizer = eventName == "combat.damage" ? new HarmonyMethod(typeof(DynamicPatchRegistrar).GetMethod("DamageFinalizer", BindingFlags.Static | BindingFlags.NonPublic)) : null;
+                    _harmony.Patch(method, prefix: prefix, postfix: postfix, finalizer: finalizer);
                     PatchLabels[method] = eventName;
                     Capability("patch", typeName + "." + method, true, eventName);
                 }
@@ -69,6 +72,13 @@ namespace DonChan.TelemetryProbe
             }
         }
 
+        internal static string DamageActionId { get { return DamageActionScope.Current; } }
+        private static void DamagePrefix(out DamageActionScope __state) {
+            __state = DamageActionScope.Begin(ProbeLog.SessionId);
+        }
+        private static Exception DamageFinalizer(Exception __exception, DamageActionScope __state) {
+            return DamageActionScope.End(__state, __exception);
+        }
         private static readonly Dictionary<MethodBase, string> PatchLabels = new Dictionary<MethodBase, string>();
 
         private static void HeartbeatPostfix()
@@ -83,7 +93,10 @@ namespace DonChan.TelemetryProbe
                 string label;
                 if (!PatchLabels.TryGetValue(__originalMethod, out label)) label = __originalMethod.DeclaringType.FullName + "." + __originalMethod.Name;
 
-                if (_config.EnableNormalizedEvents && (!_config.SuppressNoisyEvents || EventNormalizer.ShouldEmitHarmony(label, __args)))
+                if (_config.EnableCombatValidation && label.StartsWith("combat.", StringComparison.Ordinal))
+                    CombatValidation.Capture(label, __originalMethod, __instance, __args);
+
+                if (_config.EnableNormalizedEvents && CombatEventPolicy.IsRealEvent(label, __originalMethod, __args) && (!_config.SuppressNoisyEvents || EventNormalizer.ShouldEmitHarmony(label, __args)))
                     ProbeLog.Event(EventNormalizer.NormalizeHarmony(label, __originalMethod, __instance, __args));
 
                 if (_config.AuditMode && _config.EnableRawAuditEvents)

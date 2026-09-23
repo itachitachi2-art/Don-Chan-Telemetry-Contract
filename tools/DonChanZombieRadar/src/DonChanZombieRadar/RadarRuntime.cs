@@ -74,13 +74,9 @@ namespace DonChan.ZombieRadar
         private static bool IsZombie(EntityAlive entity)
         {
             if (entity == null) return false;
-            Type t = entity.GetType();
-            while (t != null)
-            {
-                if (t.Name.IndexOf("Zombie", StringComparison.OrdinalIgnoreCase) >= 0) return true;
-                t = t.BaseType;
-            }
-            return false;
+            string className = DonChan.Shared.NearbyTargetClassifier.ResolveClassName(entity);
+            string group = DonChan.Shared.NearbyTargetClassifier.Classify(entity.GetType(), className);
+            return DonChan.Shared.NearbyTargetClassifier.IsTarget(group);
         }
 
         private void Awake()
@@ -564,3 +560,4 @@ namespace DonChan.ZombieRadar
         }
     }
 }
+

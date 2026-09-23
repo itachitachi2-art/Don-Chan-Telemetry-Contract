@@ -34,4 +34,6 @@
     <MakeDir Directories="$(DeployDir)" />
     <Copy SourceFiles="$(TargetPath)" DestinationFiles="$(DeployDir)\DonChanTelemetryProbe.dll" />
   </Target>
+  <ItemGroup><Compile Include="../../shared/NearbyTargetClassifier.cs" Link="NearbyTargetClassifier.cs" /></ItemGroup>
 </Project>
+

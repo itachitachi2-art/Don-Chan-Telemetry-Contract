@@ -99,6 +99,9 @@ foreach ($name in @(
 }
 
 $sourceFiles = Get-ChildItem -Path $sourceDir -Filter "*.cs" -File | Sort-Object Name
+$sharedClassifier = Join-Path $root '..\..\shared\NearbyTargetClassifier.cs'
+if (!(Test-Path $sharedClassifier)) { throw 'Shared classifier missing; build from the repository checkout' }
+$sourceFiles = @($sourceFiles) + @(Get-Item $sharedClassifier)
 if ($sourceFiles.Count -eq 0) { throw "No C# source files found: $sourceDir" }
 
 New-Item -ItemType Directory -Path $outputDir -Force | Out-Null
@@ -182,3 +185,4 @@ try {
 finally {
     if (Test-Path $rsp) { Remove-Item $rsp -Force -ErrorAction SilentlyContinue }
 }
+
