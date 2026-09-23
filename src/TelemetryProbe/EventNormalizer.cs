@@ -109,6 +109,8 @@ namespace DonChan.TelemetryProbe
         public static Dictionary<string, object> NormalizeHarmony(string eventName, MethodBase method, object instance, object[] args)
         {
             var root = Base(eventName, "harmony", null);
+            if (eventName.StartsWith("combat.", StringComparison.Ordinal) && DynamicPatchRegistrar.DamageActionId != null)
+                root["damageActionId"] = DynamicPatchRegistrar.DamageActionId;
             if (method != null) root["method"] = method.DeclaringType.FullName + "." + method.Name;
             var data = new Dictionary<string, object>();
             root["data"] = data;

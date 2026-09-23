@@ -6,7 +6,7 @@ namespace DonChan.TelemetryProbe
 {
     internal static class CombatValidation
     {
-        public const string Version = "combat-validation-20260923-2";
+        public const string Version = "combat-validation-20260923-3";
         public static bool Enabled;
         public static int Step;
         private static readonly string[] Labels = {
@@ -40,7 +40,7 @@ namespace DonChan.TelemetryProbe
                 var roots = SnapshotCollector.ResolveRoots();
                 if (roots.Player == null) { ProbeLog.Warn("Validation marker ignored: no local player."); return; }
                 if (next && Step < Labels.Length - 1) Step++;
-                ProbeLog.Event(new Dictionary<string, object> { { "event", "test.marker" }, { "utc", DateTime.UtcNow },
+                ProbeLog.Event(new Dictionary<string, object> { { "kind", "diagnostic" }, { "event", "test.marker" }, { "utc", DateTime.UtcNow },
                     { "step", Step }, { "label", Labels[Step] }, { "repeat", !next }, { "player", LightTelemetry.EntitySummary(roots.Player) } });
                 ProbeLog.Info("VALIDATION STEP " + Step + " / " + Labels[Step]);
                 SnapshotCollector.CaptureLight(null, roots);
@@ -79,7 +79,7 @@ namespace DonChan.TelemetryProbe
                 }
                 values.Add(new Dictionary<string, object> { { "name", i < pars.Length ? pars[i].Name : "?" }, { "value", value } });
             }
-            ProbeLog.Event(new Dictionary<string, object> { { "event", "validation.combat" }, { "utc", DateTime.UtcNow },
+            ProbeLog.Event(new Dictionary<string, object> { { "kind", "diagnostic" }, { "damageActionId", DynamicPatchRegistrar.DamageActionId }, { "event", "validation.combat" }, { "utc", DateTime.UtcNow },
                 { "sourceEvent", label }, { "signature", method.DeclaringType.FullName + "." + method },
                 { "instance", instance == null ? null : LightTelemetry.EntitySummary(instance) }, { "arguments", values } });
         }

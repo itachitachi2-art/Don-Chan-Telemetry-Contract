@@ -62,7 +62,9 @@ namespace DonChan.TelemetryProbe
                 try
                 {
                     var postfix = new HarmonyMethod(typeof(DynamicPatchRegistrar).GetMethod("GenericEventPostfix", BindingFlags.Static | BindingFlags.NonPublic));
-                    _harmony.Patch(method, postfix: postfix);
+                    var prefix = eventName == "combat.damage" ? new HarmonyMethod(typeof(DynamicPatchRegistrar).GetMethod("DamagePrefix", BindingFlags.Static | BindingFlags.NonPublic)) : null;
+                    var finalizer = eventName == "combat.damage" ? new HarmonyMethod(typeof(DynamicPatchRegistrar).GetMethod("DamageFinalizer", BindingFlags.Static | BindingFlags.NonPublic)) : null;
+                    _harmony.Patch(method, prefix: prefix, postfix: postfix, finalizer: finalizer);
                     PatchLabels[method] = eventName;
                     Capability("patch", typeName + "." + method, true, eventName);
                 }
@@ -70,6 +72,17 @@ namespace DonChan.TelemetryProbe
             }
         }
 
+        [ThreadStatic] private static string _damageActionId;
+        private static long _damageSerial;
+        internal static string DamageActionId { get { return _damageActionId; } }
+        private static void DamagePrefix(out string __state) {
+            __state = _damageActionId;
+            _damageActionId = ProbeLog.SessionId + ":damage:" + System.Threading.Interlocked.Increment(ref _damageSerial);
+        }
+        private static Exception DamageFinalizer(Exception __exception, string __state) {
+            _damageActionId = __state;
+            return __exception;
+        }
         private static readonly Dictionary<MethodBase, string> PatchLabels = new Dictionary<MethodBase, string>();
 
         private static void HeartbeatPostfix()
