@@ -14,3 +14,7 @@ jobs:
       - name: Compile and test transport without game assemblies
         shell: powershell
         run: ./tests/run-feed-tests.ps1
+
+      - name: Compile and test nearby observations without game assemblies
+        shell: powershell
+        run: ./tests/run-nearby-tests.ps1
