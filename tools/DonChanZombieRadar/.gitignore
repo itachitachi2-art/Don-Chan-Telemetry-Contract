@@ -1,0 +1,6 @@
+mod/DonChanZombieRadar/DonChanZombieRadar.dll
+mod/DonChanZombieRadar/DonChanZombieRadar.pdb
+build-last.rsp
+build-env.txt
+*.user
+.vs/
