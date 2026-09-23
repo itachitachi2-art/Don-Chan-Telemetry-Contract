@@ -77,6 +77,7 @@ foreach ($name in @("mscorlib.dll", "System.dll", "System.Core.dll", "System.Xml
 
 # Optional runtime/facade assemblies commonly used by Unity/.NET Standard metadata.
 foreach ($name in @(
+    "UnityEngine.InputLegacyModule.dll",
     "System.Runtime.dll",
     "System.Runtime.Extensions.dll",
     "System.Runtime.InteropServices.dll",
@@ -181,4 +182,5 @@ try {
 finally {
     if (Test-Path $rsp) { Remove-Item $rsp -Force -ErrorAction SilentlyContinue }
 }
+
 

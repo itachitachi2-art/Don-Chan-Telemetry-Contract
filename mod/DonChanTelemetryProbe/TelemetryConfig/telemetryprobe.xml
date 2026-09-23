@@ -2,6 +2,7 @@
 <TelemetryProbeConfig>
   <!-- Default is LIGHT mode: compact state + normalized events, suitable for longer runs. -->
   <AuditMode>false</AuditMode>
+  <EnableCombatValidation>false</EnableCombatValidation>
   <!-- Read-only loopback feed for AITuber. Restart the game after changing these. -->
   <EnableHttpFeed>true</EnableHttpFeed>
   <HttpFeedPort>18732</HttpFeedPort>
@@ -31,3 +32,4 @@
   <EnableEventSubscriptions>true</EnableEventSubscriptions>
   <EnableHarmonyEventFallbacks>true</EnableHarmonyEventFallbacks>
 </TelemetryProbeConfig>
+

@@ -85,6 +85,17 @@ namespace DonChan.TelemetryProbe
                             if (playerId != null && SameId(targetId, playerId)) r["targetState"] = "player_reference";
                         }
                     }
+                    var references = new Dictionary<string, object>();
+                    foreach (string field in new [] { "attackTarget", "attackTargetClient" }) {
+                        object reference;
+                        bool readable = Read(entity, new [] { field }, out reference);
+                        object referenceId = null;
+                        if (reference != null) Read(reference, new [] { "entityId", "EntityId" }, out referenceId);
+                        references[field] = new Dictionary<string, object> {
+                            { "readable", readable }, { "isNull", readable ? (object)(reference == null) : null }, { "entityId", referenceId }
+                        };
+                    }
+                    r["targetReferences"] = references;
                     records.Add(r);
                 }
                 d["scanComplete"] = true;
@@ -142,3 +153,4 @@ namespace DonChan.TelemetryProbe
         }
     }
 }
+

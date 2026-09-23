@@ -83,6 +83,9 @@ namespace DonChan.TelemetryProbe
                 string label;
                 if (!PatchLabels.TryGetValue(__originalMethod, out label)) label = __originalMethod.DeclaringType.FullName + "." + __originalMethod.Name;
 
+                if (_config.EnableCombatValidation && label.StartsWith("combat.", StringComparison.Ordinal))
+                    CombatValidation.Capture(label, __originalMethod, __instance, __args);
+
                 if (_config.EnableNormalizedEvents && (!_config.SuppressNoisyEvents || EventNormalizer.ShouldEmitHarmony(label, __args)))
                     ProbeLog.Event(EventNormalizer.NormalizeHarmony(label, __originalMethod, __instance, __args));
 
@@ -111,3 +114,4 @@ namespace DonChan.TelemetryProbe
         }
     }
 }
+

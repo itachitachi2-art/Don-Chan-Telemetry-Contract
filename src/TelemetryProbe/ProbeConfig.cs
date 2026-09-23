@@ -9,6 +9,7 @@ namespace DonChan.TelemetryProbe
     {
         // Light mode is the default runtime mode. Audit mode enables the heavy reflection dumps.
         public bool AuditMode = false;
+        public bool EnableCombatValidation = false;
         public bool EnableHttpFeed = true;
         public int HttpFeedPort = 18732;
         public bool EnableLightSnapshots = true;
@@ -45,6 +46,7 @@ namespace DonChan.TelemetryProbe
             {
                 var root = XDocument.Load(path).Root;
                 if (root == null) return config;
+                config.EnableCombatValidation = Bool(root, "EnableCombatValidation", false);
                 config.AuditMode = Bool(root, "AuditMode", config.AuditMode);
                 config.EnableHttpFeed = Bool(root, "EnableHttpFeed", config.EnableHttpFeed);
                 config.HttpFeedPort = Int(root, "HttpFeedPort", config.HttpFeedPort);
@@ -100,3 +102,4 @@ namespace DonChan.TelemetryProbe
         }
     }
 }
+
